@@ -24,6 +24,7 @@
  */
 #include "fossil/time/date.h"
 #include <string.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -42,6 +43,39 @@ static int days_in_month(int32_t year, int8_t month) {
     if (month == 2 && is_leap(year)) return 29;
     if (month < 1 || month > 12) return 0;
     return days[month - 1];
+}
+
+/* ======================================================
+ * Internal: portable UTC timegm replacement
+ * ====================================================== */
+
+static time_t fossil_time_internal_timegm(struct tm *tm) {
+
+#if defined(_WIN32)
+
+    /* Windows provides _mkgmtime */
+    return _mkgmtime(tm);
+
+#else
+
+    /* POSIX fallback: temporarily force UTC */
+    char *old_tz = getenv("TZ");
+    time_t result;
+
+    setenv("TZ", "UTC", 1);
+    tzset();
+
+    result = mktime(tm);
+
+    if (old_tz)
+        setenv("TZ", old_tz, 1);
+    else
+        unsetenv("TZ");
+
+    tzset();
+    return result;
+
+#endif
 }
 
 /* ======================================================
@@ -124,7 +158,7 @@ void fossil_time_date_normalize(fossil_time_date_t *dt) {
     tm.tm_min  = dt->minute;
     tm.tm_sec  = dt->second;
 
-    time_t t = timegm(&tm);
+    time_t t = fossil_time_internal_timegm(&tm);
     gmtime_r(&t, &tm);
 
     dt->weekday = tm.tm_wday;
