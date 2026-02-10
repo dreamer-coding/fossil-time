@@ -344,7 +344,31 @@ namespace fossil {
              * @brief Default constructor. Initializes an empty Date object.
              * The underlying fossil_time_date_t structure is default-initialized.
              */
-            Date() { }
+            Date() {
+                raw.year           = 0;
+                raw.month          = 0;
+                raw.day            = 0;
+        
+                raw.hour           = 0;
+                raw.minute         = 0;
+                raw.second         = 0;
+        
+                raw.millisecond    = 0;
+                raw.microsecond    = 0;
+                raw.nanosecond     = 0;
+                raw.picosecond     = 0;
+                raw.femtosecond    = 0;
+                raw.attosecond     = 0;
+                raw.zeptosecond    = 0;
+                raw.yoctosecond    = 0;
+        
+                raw.weekday        = -1;
+                raw.yearday        = -1;
+        
+                raw.tz_offset_min  = 0;
+        
+                raw.precision_mask = 0;
+            }
 
             /* ======================================================
              * Core
@@ -356,7 +380,7 @@ namespace fossil {
              * most precise current date and time available.
              */
             inline void now() {
-            fossil_time_date_now(&raw);
+                fossil_time_date_now(&raw);
             }
 
             /**
@@ -365,7 +389,7 @@ namespace fossil {
              * their valid ranges. Returns true if valid, false otherwise.
              */
             inline bool validate() const {
-            return fossil_time_date_validate(&raw) != 0;
+                return fossil_time_date_validate(&raw) != 0;
             }
 
             /**
@@ -374,7 +398,7 @@ namespace fossil {
              * and updates the precision_mask as needed.
              */
             inline void normalize() {
-            fossil_time_date_normalize(&raw);
+                fossil_time_date_normalize(&raw);
             }
 
             /* ======================================================
@@ -389,7 +413,7 @@ namespace fossil {
              * @return -1 if this < other, 0 if equal, 1 if this > other.
              */
             inline int compare(const Date &other) const {
-            return fossil_time_date_compare(&raw, &other.raw);
+                return fossil_time_date_compare(&raw, &other.raw);
             }
 
             /**
@@ -400,7 +424,7 @@ namespace fossil {
              * @return Signed difference in seconds (this - other).
              */
             inline int64_t diff_seconds(const Date &other) const {
-            return fossil_time_date_diff_seconds(&raw, &other.raw);
+                return fossil_time_date_diff_seconds(&raw, &other.raw);
             }
 
             /* ======================================================
@@ -414,7 +438,7 @@ namespace fossil {
              * @return Number of seconds since the Unix epoch.
              */
             inline int64_t to_unix_seconds() const {
-            return fossil_time_date_to_unix_seconds(&raw);
+                return fossil_time_date_to_unix_seconds(&raw);
             }
 
             /**
@@ -423,7 +447,7 @@ namespace fossil {
              * @return Number of nanoseconds since the Unix epoch.
              */
             inline int64_t to_unix_nanoseconds() const {
-            return fossil_time_date_to_unix_nanoseconds(&raw);
+                return fossil_time_date_to_unix_nanoseconds(&raw);
             }
 
             /**
@@ -433,7 +457,7 @@ namespace fossil {
              * @param seconds Number of seconds since the Unix epoch.
              */
             inline void from_unix_seconds(int64_t seconds) {
-            fossil_time_date_from_unix_seconds(seconds, &raw);
+                fossil_time_date_from_unix_seconds(seconds, &raw);
             }
 
             /* ======================================================
@@ -454,7 +478,7 @@ namespace fossil {
             size_t buffer_size,
             const char *format_id
             ) const {
-            return fossil_time_date_format(&raw, buffer, buffer_size, format_id);
+                return fossil_time_date_format(&raw, buffer, buffer_size, format_id);
             }
 
             /**
@@ -470,9 +494,9 @@ namespace fossil {
             char *buffer,
             size_t buffer_size
             ) const {
-            return fossil_time_date_format_smart(
-                &raw, &now.raw, buffer, buffer_size
-            );
+                return fossil_time_date_format_smart(
+                    &raw, &now.raw, buffer, buffer_size
+                );
             }
 
             /**
@@ -488,9 +512,9 @@ namespace fossil {
             char *buffer,
             size_t buffer_size
             ) const {
-            return fossil_time_date_format_relative(
-                &raw, &now.raw, buffer, buffer_size
-            );
+                return fossil_time_date_format_relative(
+                    &raw, &now.raw, buffer, buffer_size
+                );
             }
 
             /* ======================================================
@@ -508,7 +532,7 @@ namespace fossil {
             const Date &now,
             const char *query
             ) const {
-            return fossil_time_date_search(&raw, &now.raw, query) != 0;
+                return fossil_time_date_search(&raw, &now.raw, query) != 0;
             }
         };
     
