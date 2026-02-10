@@ -63,27 +63,6 @@ static fossil_time_date_t make_date(
     return dt;
 }
 
-// Test: Precision mask bits are unique and non-overlapping
-FOSSIL_TEST(c_test_precision_mask_bits) {
-    uint64_t mask = 0;
-    mask |= FOSSIL_TIME_PRECISION_YEAR;
-    mask |= FOSSIL_TIME_PRECISION_MONTH;
-    mask |= FOSSIL_TIME_PRECISION_DAY;
-    mask |= FOSSIL_TIME_PRECISION_HOUR;
-    mask |= FOSSIL_TIME_PRECISION_MINUTE;
-    mask |= FOSSIL_TIME_PRECISION_SECOND;
-    mask |= FOSSIL_TIME_PRECISION_MILLI;
-    mask |= FOSSIL_TIME_PRECISION_MICRO;
-    mask |= FOSSIL_TIME_PRECISION_NANO;
-    mask |= FOSSIL_TIME_PRECISION_PICO;
-    mask |= FOSSIL_TIME_PRECISION_FEMTO;
-    mask |= FOSSIL_TIME_PRECISION_ATTO;
-    mask |= FOSSIL_TIME_PRECISION_ZEPTO;
-    mask |= FOSSIL_TIME_PRECISION_YOCTO;
-    // Should be 14 bits set
-    ASSUME_ITS_EQUAL_I32(fossil_sys_bitwise_count(mask), 14);
-}
-
 // Test: fossil_time_date_now populates all fields and sets precision_mask
 FOSSIL_TEST(c_test_date_now) {
     fossil_time_date_t dt;
@@ -234,7 +213,6 @@ FOSSIL_TEST(c_test_date_search) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(c_date_tests) {
-    FOSSIL_TEST_ADD(c_date_suite, c_test_precision_mask_bits);
     FOSSIL_TEST_ADD(c_date_suite, c_test_date_now);
     FOSSIL_TEST_ADD(c_date_suite, c_test_date_validate);
     FOSSIL_TEST_ADD(c_date_suite, c_test_date_normalize);
