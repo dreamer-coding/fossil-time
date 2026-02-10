@@ -157,11 +157,11 @@ FOSSIL_TEST(cpp_test_date_format_method) {
         FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY |
         FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
     char buf[64];
-    int n = d.format(buf, sizeof(buf), "iso");
+    d.format(buf, sizeof(buf), "iso");
     ASSUME_ITS_EQUAL_CSTR(buf, "2024-06-01T12:34:56Z");
-    n = d.format(buf, sizeof(buf), "log");
+    d.format(buf, sizeof(buf), "log");
     ASSUME_ITS_EQUAL_CSTR(buf, "20240601-123456");
-    n = d.format(buf, sizeof(buf), "unknown");
+    d.format(buf, sizeof(buf), "unknown");
     ASSUME_ITS_EQUAL_CSTR(buf, "invalid_date");
 }
 
@@ -172,16 +172,16 @@ FOSSIL_TEST(cpp_test_date_format_smart_relative_method) {
         FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
     Date d = now;
     char buf[64];
-    int n = d.format_smart(now, buf, sizeof(buf));
+    d.format_smart(now, buf, sizeof(buf));
     ASSUME_ITS_EQUAL_CSTR(buf, "now");
     d.raw.second += 10;
     d.normalize();
-    n = d.format_smart(now, buf, sizeof(buf));
+    d.format_smart(now, buf, sizeof(buf));
     ASSUME_ITS_TRUE(strstr(buf, "in 10 seconds") != NULL);
     d = now;
     d.raw.second -= 5;
     d.normalize();
-    n = d.format_relative(now, buf, sizeof(buf));
+    d.format_relative(now, buf, sizeof(buf));
     ASSUME_ITS_TRUE(strstr(buf, "5 seconds ago") != NULL);
 }
 
