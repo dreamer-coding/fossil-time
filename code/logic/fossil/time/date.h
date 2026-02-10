@@ -304,14 +304,17 @@ int fossil_time_date_format_relative(
 /**
  * @brief Evaluate a search or query expression against a fossil_time_date_t structure.
  *
- * This function evaluates whether the given fossil_time_date_t structure matches the
- * specified query string, optionally using the provided "now" date/time for context.
- * Supported queries include expressions like "today", "yesterday", "> 2025-01-01",
- * "within 5 seconds", "same month", "weekend", and more. The function returns a nonzero
- * value if the structure matches the query, or 0 otherwise.
+ * Evaluates whether the given fossil_time_date_t structure satisfies the specified
+ * query expression. The query may be a keyword (e.g. "today", "weekend", "past"),
+ * or a simple comparison expression using symbolic or English operators
+ * (e.g. "year = 2025", "month >= 6", "weekday is not 0", "before today").
+ *
+ * The optional @p now parameter provides contextual reference for relative
+ * expressions such as "today", "past", or "future". If @p now is NULL, only
+ * absolute field-based and context-free queries are evaluated.
  *
  * @param dt    Pointer to the fossil_time_date_t structure to evaluate.
- * @param now   Pointer to the current date/time for context (may be NULL).
+ * @param now   Pointer to the current date/time for contextual queries (may be NULL).
  * @param query Query string describing the search or filter criteria.
  * @return Nonzero if the structure matches the query; 0 otherwise.
  */
@@ -522,11 +525,21 @@ namespace fossil {
              * ====================================================== */
 
             /**
-             * @brief Evaluate a search or query expression against this Date object.
-             * Supported queries include "today", "yesterday", "within 5 seconds", etc.
-             * @param now Reference Date object for context.
+             * @brief Evaluate a search or query expression against a fossil_time_date_t structure.
+             *
+             * Evaluates whether the given fossil_time_date_t structure satisfies the specified
+             * query expression. The query may be a keyword (e.g. "today", "weekend", "past"),
+             * or a simple comparison expression using symbolic or English operators
+             * (e.g. "year = 2025", "month >= 6", "weekday is not 0", "before today").
+             *
+             * The optional @p now parameter provides contextual reference for relative
+             * expressions such as "today", "past", or "future". If @p now is NULL, only
+             * absolute field-based and context-free queries are evaluated.
+             *
+             * @param dt    Pointer to the fossil_time_date_t structure to evaluate.
+             * @param now   Pointer to the current date/time for contextual queries (may be NULL).
              * @param query Query string describing the search or filter criteria.
-             * @return true if the structure matches the query; false otherwise.
+             * @return Nonzero if the structure matches the query; 0 otherwise.
              */
             inline bool search(
             const Date &now,
