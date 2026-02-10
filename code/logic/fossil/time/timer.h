@@ -31,17 +31,81 @@
 extern "C" {
 #endif
 
-typedef struct {
+/* ======================================================
+ * Fossil Time — Monotonic Timer
+ * ====================================================== */
+
+/*
+ * Timer represents a monotonic measurement point.
+ * It is NOT wall-clock time and must never jump backwards.
+ */
+typedef struct fossil_time_timer_t {
     uint64_t start_ns;
 } fossil_time_timer_t;
 
-void fossil_time_timer_start(fossil_time_timer_t *t);
-uint64_t fossil_time_timer_elapsed_ns(const fossil_time_timer_t *t);
-double fossil_time_timer_elapsed_ms(const fossil_time_timer_t *t);
+/* ======================================================
+ * C API — Core
+ * ====================================================== */
+
+/* Initialize / reset timer */
+void fossil_time_timer_start(
+    fossil_time_timer_t *timer
+);
+
+/* Elapsed time since start */
+uint64_t fossil_time_timer_elapsed_ns(
+    const fossil_time_timer_t *timer
+);
+
+uint64_t fossil_time_timer_elapsed_us(
+    const fossil_time_timer_t *timer
+);
+
+uint64_t fossil_time_timer_elapsed_ms(
+    const fossil_time_timer_t *timer
+);
+
+double fossil_time_timer_elapsed_sec(
+    const fossil_time_timer_t *timer
+);
+
+/* ======================================================
+ * C API — Convenience
+ * ====================================================== */
+
+/*
+ * Measure elapsed time and reset start point.
+ * Useful for frame timing, ticks, loops.
+ */
+uint64_t fossil_time_timer_lap_ns(
+    fossil_time_timer_t *timer
+);
+
+/* ======================================================
+ * C API — AI / Hint-Based Timing
+ * ====================================================== */
+
+/*
+ * Interpret a timing hint and return a duration in nanoseconds.
+ *
+ * hint_id examples:
+ *   "frame"        -> ~16ms
+ *   "tick"         -> small scheduler quantum
+ *   "yield"        -> minimal pause
+ *   "human_short"  -> ~250ms
+ *   "human_long"   -> ~2s
+ */
+uint64_t fossil_time_timer_hint_ns(
+    const char *hint_id
+);
 
 #ifdef __cplusplus
-} // extern "C"
+} /* extern "C" */
 #endif
+
+/* ======================================================
+ * C++ Wrapper — Thin, Inline, ABI-Safe
+ * ====================================================== */
 
 #ifdef __cplusplus
 namespace fossil {
@@ -49,16 +113,41 @@ namespace time {
 
 class Timer {
 public:
-    uint64_t start_ns;
+    fossil_time_timer_t raw;
 
-    Timer();
-    void start();
-    uint64_t elapsed_ns() const;
-    double elapsed_ms() const;
+    Timer() { }
+
+    inline void start() {
+        fossil_time_timer_start(&raw);
+    }
+
+    inline uint64_t elapsed_ns() const {
+        return fossil_time_timer_elapsed_ns(&raw);
+    }
+
+    inline uint64_t elapsed_us() const {
+        return fossil_time_timer_elapsed_us(&raw);
+    }
+
+    inline uint64_t elapsed_ms() const {
+        return fossil_time_timer_elapsed_ms(&raw);
+    }
+
+    inline double elapsed_sec() const {
+        return fossil_time_timer_elapsed_sec(&raw);
+    }
+
+    inline uint64_t lap_ns() {
+        return fossil_time_timer_lap_ns(&raw);
+    }
+
+    static inline uint64_t hint_ns(const char *hint_id) {
+        return fossil_time_timer_hint_ns(hint_id);
+    }
 };
 
-} // namespace time
-} // namespace fossil
+} /* namespace time */
+} /* namespace fossil */
 #endif
 
-#endif
+#endif /* FOSSIL_TIME_TIMER_H */
