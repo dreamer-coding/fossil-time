@@ -336,19 +336,99 @@ int fossil_time_date_format_relative(
     return fossil_time_date_format_smart(dt, now, buffer, buffer_size);
 }
 
+// search logic
+
+static int fossil_time_date_get_field(
+    const fossil_time_date_t *dt,
+    const char *field,
+    int *out
+) {
+    if (!strcmp(field, "year"))    { *out = dt->year; return 1; }
+    if (!strcmp(field, "month"))   { *out = dt->month; return 1; }
+    if (!strcmp(field, "day"))     { *out = dt->day; return 1; }
+    if (!strcmp(field, "hour"))    { *out = dt->hour; return 1; }
+    if (!strcmp(field, "minute"))  { *out = dt->minute; return 1; }
+    if (!strcmp(field, "second"))  { *out = dt->second; return 1; }
+    if (!strcmp(field, "weekday")) { *out = dt->weekday; return 1; }
+    return 0;
+}
+
+static int fossil_cmp(int lhs, const char *op, int rhs) {
+    if (!strcmp(op, "=")  || !strcmp(op, "==") || !strcmp(op, "is") || !strcmp(op, "equals"))
+        return lhs == rhs;
+
+    if (!strcmp(op, "!=") || !strcmp(op, "is not"))
+        return lhs != rhs;
+
+    if (!strcmp(op, "<")  || !strcmp(op, "before"))
+        return lhs < rhs;
+
+    if (!strcmp(op, ">")  || !strcmp(op, "after"))
+        return lhs > rhs;
+
+    if (!strcmp(op, "<=") || !strcmp(op, "on or before"))
+        return lhs <= rhs;
+
+    if (!strcmp(op, ">=") || !strcmp(op, "on or after"))
+        return lhs >= rhs;
+
+    return 0;
+}
+
 int fossil_time_date_search(
     const fossil_time_date_t *dt,
     const fossil_time_date_t *now,
     const char *query
 ) {
-    if (!strcmp(query, "today") && now) {
+    if (!dt || !query) {
+        return 0;
+    }
+
+    /* ---- simple keywords ---- */
+
+    if (now && !strcmp(query, "today")) {
         return dt->year  == now->year &&
                dt->month == now->month &&
                dt->day   == now->day;
     }
 
     if (!strcmp(query, "weekend")) {
-        return (dt->weekday == 0 || dt->weekday == 6);
+        return dt->weekday == 0 || dt->weekday == 6;
+    }
+
+    if (!strcmp(query, "weekday")) {
+        return dt->weekday >= 1 && dt->weekday <= 5;
+    }
+
+    if (now && !strcmp(query, "past")) {
+        return fossil_time_date_compare(dt, now) < 0;
+    }
+
+    if (now && !strcmp(query, "future")) {
+        return fossil_time_date_compare(dt, now) > 0;
+    }
+
+    /* ---- expression form: field op value ---- */
+
+    char field[16];
+    char op[16];
+    int value;
+
+    if (sscanf(query, "%15s %15s %d", field, op, &value) == 3) {
+        int lhs;
+        if (fossil_time_date_get_field(dt, field, &lhs)) {
+            return fossil_cmp(lhs, op, value);
+        }
+    }
+
+    /* ---- relative expressions ---- */
+
+    if (now && !strcmp(query, "before today")) {
+        return fossil_time_date_compare(dt, now) < 0;
+    }
+
+    if (now && !strcmp(query, "after today")) {
+        return fossil_time_date_compare(dt, now) > 0;
     }
 
     return 0;
