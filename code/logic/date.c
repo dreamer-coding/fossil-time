@@ -289,14 +289,52 @@ int fossil_time_date_format(
     size_t buffer_size,
     const char *format_id
 ) {
-    if (!strcmp(format_id, "iso")) {
+    if (!dt || !buffer || buffer_size == 0 || !format_id)
+        return 0;
+
+    /* ---------------- ISO 8601 (precision aware) ---------------- */
+
+    if (!strcmp(format_id, "iso") ||
+        !strcmp(format_id, "rfc3339"))
+    {
+        if (dt->precision & FOSSIL_TIME_PRECISION_HOUR) {
+            return snprintf(
+                buffer, buffer_size,
+                "%04d-%02d-%02dT%02d:%02d:%02dZ",
+                dt->year, dt->month, dt->day,
+                dt->hour, dt->minute, dt->second
+            );
+        }
+
+        /* Date only */
         return snprintf(
             buffer, buffer_size,
-            "%04d-%02d-%02dT%02d:%02d:%02dZ",
-            dt->year, dt->month, dt->day,
+            "%04d-%02d-%02d",
+            dt->year, dt->month, dt->day
+        );
+    }
+
+    /* ---------------- ISO Date Only ---------------- */
+
+    if (!strcmp(format_id, "iso_date")) {
+        return snprintf(
+            buffer, buffer_size,
+            "%04d-%02d-%02d",
+            dt->year, dt->month, dt->day
+        );
+    }
+
+    /* ---------------- ISO Time Only ---------------- */
+
+    if (!strcmp(format_id, "iso_time")) {
+        return snprintf(
+            buffer, buffer_size,
+            "%02d:%02d:%02d",
             dt->hour, dt->minute, dt->second
         );
     }
+
+    /* ---------------- Log Format ---------------- */
 
     if (!strcmp(format_id, "log")) {
         return snprintf(
@@ -307,7 +345,37 @@ int fossil_time_date_format(
         );
     }
 
-    /* Fallback */
+    /* ---------------- Compact ---------------- */
+
+    if (!strcmp(format_id, "compact")) {
+        return snprintf(
+            buffer, buffer_size,
+            "%04d%02d%02d%02d%02d%02d",
+            dt->year, dt->month, dt->day,
+            dt->hour, dt->minute, dt->second
+        );
+    }
+
+    /* ---------------- Filename Safe ---------------- */
+
+    if (!strcmp(format_id, "filename")) {
+        return snprintf(
+            buffer, buffer_size,
+            "%04d-%02d-%02d_%02d-%02d-%02d",
+            dt->year, dt->month, dt->day,
+            dt->hour, dt->minute, dt->second
+        );
+    }
+
+    /* ---------------- Epoch ---------------- */
+
+    if (!strcmp(format_id, "epoch")) {
+        int64_t epoch = fossil_time_date_to_epoch(dt);
+        return snprintf(buffer, buffer_size, "%lld", (long long)epoch);
+    }
+
+    /* ---------------- Fallback ---------------- */
+
     return snprintf(buffer, buffer_size, "invalid_date");
 }
 
@@ -317,15 +385,64 @@ int fossil_time_date_format_smart(
     char *buffer,
     size_t buffer_size
 ) {
+    if (!dt || !now || !buffer || buffer_size == 0)
+        return 0;
+
     int64_t diff = fossil_time_date_diff_seconds(dt, now);
 
     if (diff == 0)
         return snprintf(buffer, buffer_size, "now");
 
-    if (diff > 0)
-        return snprintf(buffer, buffer_size, "in %lld seconds", (long long)diff);
+    int future = diff > 0;
+    int64_t abs_diff = future ? diff : -diff;
 
-    return snprintf(buffer, buffer_size, "%lld seconds ago", (long long)-diff);
+    const char *unit = "seconds";
+    int64_t value = abs_diff;
+
+    if (abs_diff >= 31536000) {          /* years */
+        unit = "years";
+        value = abs_diff / 31536000;
+    }
+    else if (abs_diff >= 2592000) {      /* months (30d approx) */
+        unit = "months";
+        value = abs_diff / 2592000;
+    }
+    else if (abs_diff >= 604800) {       /* weeks */
+        unit = "weeks";
+        value = abs_diff / 604800;
+    }
+    else if (abs_diff >= 86400) {        /* days */
+        unit = "days";
+        value = abs_diff / 86400;
+    }
+    else if (abs_diff >= 3600) {         /* hours */
+        unit = "hours";
+        value = abs_diff / 3600;
+    }
+    else if (abs_diff >= 60) {           /* minutes */
+        unit = "minutes";
+        value = abs_diff / 60;
+    }
+
+    /* Singular correction */
+    if (value == 1) {
+        if (!strcmp(unit, "seconds")) unit = "second";
+        else if (!strcmp(unit, "minutes")) unit = "minute";
+        else if (!strcmp(unit, "hours")) unit = "hour";
+        else if (!strcmp(unit, "days")) unit = "day";
+        else if (!strcmp(unit, "weeks")) unit = "week";
+        else if (!strcmp(unit, "months")) unit = "month";
+        else if (!strcmp(unit, "years")) unit = "year";
+    }
+
+    if (future)
+        return snprintf(buffer, buffer_size,
+                        "in %lld %s",
+                        (long long)value, unit);
+
+    return snprintf(buffer, buffer_size,
+                    "%lld %s ago",
+                    (long long)value, unit);
 }
 
 int fossil_time_date_format_relative(
