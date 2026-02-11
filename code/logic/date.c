@@ -303,94 +303,101 @@ int fossil_time_date_format(
     size_t buffer_size,
     const char *format_id
 ) {
-    if (!dt || !buffer || buffer_size == 0 || !format_id)
+    if (!dt || !buffer || buffer_size == 0)
         return 0;
 
-    /* ---------------- ISO 8601 (precision aware) ---------------- */
+    int n = 0;
 
-    if (!strcmp(format_id, "iso") ||
-        !strcmp(format_id, "rfc3339"))
-    {
-        if (dt->precision & FOSSIL_TIME_PRECISION_HOUR) {
-            return snprintf(
-                buffer, buffer_size,
-                "%04d-%02d-%02dT%02d:%02d:%02dZ",
-                dt->year, dt->month, dt->day,
-                dt->hour, dt->minute, dt->second
-            );
-        }
+    /* -------- Date part -------- */
+    if (dt->precision_mask & FOSSIL_TIME_PRECISION_YEAR)
+        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%04d", dt->year);
+    if (dt->precision_mask & FOSSIL_TIME_PRECISION_MONTH)
+        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "-%02d", dt->month);
+    if (dt->precision_mask & FOSSIL_TIME_PRECISION_DAY)
+        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "-%02d", dt->day);
 
-        /* Date only */
-        return snprintf(
-            buffer, buffer_size,
-            "%04d-%02d-%02d",
-            dt->year, dt->month, dt->day
-        );
+    /* -------- Time part -------- */
+    if (dt->precision_mask & (FOSSIL_TIME_PRECISION_HOUR |
+                              FOSSIL_TIME_PRECISION_MINUTE |
+                              FOSSIL_TIME_PRECISION_SECOND)) {
+        int h = dt->precision_mask & FOSSIL_TIME_PRECISION_HOUR ? dt->hour : 0;
+        int m = dt->precision_mask & FOSSIL_TIME_PRECISION_MINUTE ? dt->minute : 0;
+        int s = dt->precision_mask & FOSSIL_TIME_PRECISION_SECOND ? dt->second : 0;
+
+        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "T%02d:%02d:%02d", h, m, s);
+
+        /* -------- Sub-second fraction -------- */
+        int subsec_present = 0;
+        char subsec[32];
+        int pos = 0;
+
+        #define APPEND_SUBSEC(field) \
+            if (dt->precision_mask & FOSSIL_TIME_PRECISION_##field) { \
+                pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->field); \
+                subsec_present = 1; \
+            }
+
+        APPEND_SUBSEC(MILLI);
+        APPEND_SUBSEC(MICRO);
+        APPEND_SUBSEC(NANO);
+        APPEND_SUBSEC(PICO);
+        APPEND_SUBSEC(FEMTO);
+        APPEND_SUBSEC(ATTO);
+        APPEND_SUBSEC(ZEPTO);
+        APPEND_SUBSEC(YOCTO);
+
+        /* Trim trailing zeros */
+        while (pos > 0 && subsec[pos - 1] == '0') pos--;
+        if (subsec_present && pos > 0)
+            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, ".%.*s", pos, subsec);
+
+        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "Z");
     }
 
-    /* ---------------- ISO Date Only ---------------- */
-
-    if (!strcmp(format_id, "iso_date")) {
-        return snprintf(
-            buffer, buffer_size,
-            "%04d-%02d-%02d",
-            dt->year, dt->month, dt->day
-        );
-    }
-
-    /* ---------------- ISO Time Only ---------------- */
-
-    if (!strcmp(format_id, "iso_time")) {
-        return snprintf(
-            buffer, buffer_size,
-            "%02d:%02d:%02d",
-            dt->hour, dt->minute, dt->second
-        );
-    }
-
-    /* ---------------- Log Format ---------------- */
-
+    /* -------- Log format -------- */
     if (!strcmp(format_id, "log")) {
-        return snprintf(
-            buffer, buffer_size,
-            "%04d%02d%02d-%02d%02d%02d",
-            dt->year, dt->month, dt->day,
-            dt->hour, dt->minute, dt->second
-        );
+        n = 0;
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_YEAR)
+            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%04d", dt->year);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_MONTH)
+            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%02d", dt->month);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_DAY)
+            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%02d", dt->day);
+
+        if (dt->precision_mask & (FOSSIL_TIME_PRECISION_HOUR |
+                                  FOSSIL_TIME_PRECISION_MINUTE |
+                                  FOSSIL_TIME_PRECISION_SECOND)) {
+            int h = dt->precision_mask & FOSSIL_TIME_PRECISION_HOUR ? dt->hour : 0;
+            int m = dt->precision_mask & FOSSIL_TIME_PRECISION_MINUTE ? dt->minute : 0;
+            int s = dt->precision_mask & FOSSIL_TIME_PRECISION_SECOND ? dt->second : 0;
+            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "-%02d%02d%02d", h, m, s);
+
+            /* optional sub-second: append only non-zero */
+            int subsec_present = 0;
+            char subsec[32];
+            int pos = 0;
+            #define APPEND_SUBSEC_LOG(field) \
+                if (dt->precision_mask & FOSSIL_TIME_PRECISION_##field) { \
+                    pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->field); \
+                    subsec_present = 1; \
+                }
+
+            APPEND_SUBSEC_LOG(MILLI);
+            APPEND_SUBSEC_LOG(MICRO);
+            APPEND_SUBSEC_LOG(NANO);
+            APPEND_SUBSEC_LOG(PICO);
+            APPEND_SUBSEC_LOG(FEMTO);
+            APPEND_SUBSEC_LOG(ATTO);
+            APPEND_SUBSEC_LOG(ZEPTO);
+            APPEND_SUBSEC_LOG(YOCTO);
+
+            while (pos > 0 && subsec[pos - 1] == '0') pos--;
+            if (subsec_present && pos > 0)
+                n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, ".%.*s", pos, subsec);
+        }
     }
 
-    /* ---------------- Compact ---------------- */
-
-    if (!strcmp(format_id, "compact")) {
-        return snprintf(
-            buffer, buffer_size,
-            "%04d%02d%02d%02d%02d%02d",
-            dt->year, dt->month, dt->day,
-            dt->hour, dt->minute, dt->second
-        );
-    }
-
-    /* ---------------- Filename Safe ---------------- */
-
-    if (!strcmp(format_id, "filename")) {
-        return snprintf(
-            buffer, buffer_size,
-            "%04d-%02d-%02d_%02d-%02d-%02d",
-            dt->year, dt->month, dt->day,
-            dt->hour, dt->minute, dt->second
-        );
-    }
-
-    /* ---------------- Epoch ---------------- */
-
-    if (!strcmp(format_id, "epoch")) {
-        int64_t epoch = fossil_time_date_to_epoch(dt);
-        return snprintf(buffer, buffer_size, "%lld", (long long)epoch);
-    }
-
-    /* ---------------- Fallback ---------------- */
-
-    return snprintf(buffer, buffer_size, "invalid_date");
+    return n;
 }
 
 int fossil_time_date_format_smart(
