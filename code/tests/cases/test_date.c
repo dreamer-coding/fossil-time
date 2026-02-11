@@ -209,6 +209,89 @@ FOSSIL_TEST(c_test_date_search) {
     ASSUME_ITS_FALSE(fossil_time_date_search(&dt, &now, "weekend"));
 }
 
+FOSSIL_TEST(c_test_date_search_field_comparisons) {
+    fossil_time_date_t dt = make_date(2024, 6, 1, 12, 0, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY |
+        FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
+    fossil_time_date_normalize(&dt);
+
+    // Symbolic operators
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "year = 2024"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "month >= 6"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "day < 2"));
+    ASSUME_ITS_FALSE(fossil_time_date_search(&dt, NULL, "hour > 12"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "hour <= 12"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "minute == 0"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "second != 1"));
+
+    // English operators
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "year is 2024"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "month on or after 6"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "day before 2"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "hour on or before 12"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "minute equals 0"));
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "second is not 1"));
+}
+
+FOSSIL_TEST(c_test_date_search_relative_keywords) {
+    fossil_time_date_t now = make_date(2024, 6, 1, 12, 0, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY |
+        FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
+    fossil_time_date_t dt = now;
+    fossil_time_date_normalize(&dt);
+
+    // "past" and "future"
+    dt.hour = 11;
+    fossil_time_date_normalize(&dt);
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, &now, "past"));
+    dt.hour = 13;
+    fossil_time_date_normalize(&dt);
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, &now, "future"));
+
+    // "before today" and "after today"
+    dt = now;
+    dt.day = now.day - 1;
+    fossil_time_date_normalize(&dt);
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, &now, "before today"));
+    dt.day = now.day + 1;
+    fossil_time_date_normalize(&dt);
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, &now, "after today"));
+}
+
+FOSSIL_TEST(c_test_date_search_invalid_and_edge_cases) {
+    fossil_time_date_t dt = make_date(2024, 6, 1, 12, 0, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY |
+        FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
+
+    // Unknown field
+    ASSUME_ITS_FALSE(fossil_time_date_search(&dt, NULL, "foo = 1"));
+
+    // Unknown operator
+    ASSUME_ITS_FALSE(fossil_time_date_search(&dt, NULL, "year ??? 2024"));
+
+    // Malformed query
+    ASSUME_ITS_FALSE(fossil_time_date_search(&dt, NULL, "year"));
+
+    // Null dt or query
+    ASSUME_ITS_FALSE(fossil_time_date_search(NULL, NULL, "year = 2024"));
+    ASSUME_ITS_FALSE(fossil_time_date_search(&dt, NULL, NULL));
+}
+
+FOSSIL_TEST(c_test_date_search_weekday_weekend) {
+    fossil_time_date_t dt = make_date(2024, 6, 1, 0, 0, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY);
+    fossil_time_date_normalize(&dt);
+
+    // 2024-06-01 is Saturday (weekday 6)
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "weekend"));
+    dt.weekday = 0; // Sunday
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "weekend"));
+    dt.weekday = 3; // Wednesday
+    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "weekday"));
+    dt.weekday = 6; // Saturday
+    ASSUME_ITS_FALSE(fossil_time_date_search(&dt, NULL, "weekday"));
+}
+
 // * * * * * * * * * * * * * * * * * * * * * * * *
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -223,6 +306,10 @@ FOSSIL_TEST_GROUP(c_date_tests) {
     FOSSIL_TEST_ADD(c_date_suite, c_test_date_format);
     FOSSIL_TEST_ADD(c_date_suite, c_test_date_format_smart_relative);
     FOSSIL_TEST_ADD(c_date_suite, c_test_date_search);
+    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_field_comparisons);
+    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_relative_keywords);
+    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_invalid_and_edge_cases);
+    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_weekday_weekend);
 
     FOSSIL_TEST_REGISTER(c_date_suite);
 }
