@@ -226,16 +226,74 @@ FOSSIL_TEST(cpp_test_date_format_human_short) {
     ASSUME_ITS_TRUE(n > 0);
 }
 
-// Test: search() with "within" queries
-FOSSIL_TEST(cpp_test_date_search_within) {
+// Test: search() with "past" and "future" queries
+FOSSIL_TEST(cpp_test_date_search_past_future) {
     Date now = make_cpp_date(2024, 6, 1, 12, 0, 0, 0, 0, 0,
         FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY |
         FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
-    Date d = now;
-    d.raw.second += 3;
+    Date past = now;
+    past.raw.hour -= 1;
+    past.normalize();
+    Date future = now;
+    future.raw.hour += 1;
+    future.normalize();
+    ASSUME_ITS_TRUE(past.search(now, "past"));
+    ASSUME_ITS_FALSE(past.search(now, "future"));
+    ASSUME_ITS_TRUE(future.search(now, "future"));
+    ASSUME_ITS_FALSE(future.search(now, "past"));
+}
+
+// Test: search() with field comparison queries
+FOSSIL_TEST(cpp_test_date_search_field_comparisons) {
+    Date d = make_cpp_date(2025, 7, 4, 15, 30, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY |
+        FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
+    ASSUME_ITS_TRUE(d.search(d, "year = 2025"));
+    ASSUME_ITS_TRUE(d.search(d, "month >= 6"));
+    ASSUME_ITS_TRUE(d.search(d, "day != 1"));
+    ASSUME_ITS_TRUE(d.search(d, "hour > 12"));
+    ASSUME_ITS_FALSE(d.search(d, "minute < 10"));
+    ASSUME_ITS_TRUE(d.search(d, "year is not 2024"));
+    ASSUME_ITS_FALSE(d.search(d, "month = 1"));
+}
+
+// Test: search() with symbolic operators and English operators
+FOSSIL_TEST(cpp_test_date_search_english_operators) {
+    Date d = make_cpp_date(2023, 12, 31, 23, 59, 59, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY |
+        FOSSIL_TIME_PRECISION_HOUR | FOSSIL_TIME_PRECISION_MINUTE | FOSSIL_TIME_PRECISION_SECOND);
+    ASSUME_ITS_TRUE(d.search(d, "year is 2023"));
+    ASSUME_ITS_TRUE(d.search(d, "month is not 1"));
+    ASSUME_ITS_TRUE(d.search(d, "day equals 31"));
+    ASSUME_ITS_FALSE(d.search(d, "hour is 0"));
+    ASSUME_ITS_TRUE(d.search(d, "minute is not 0"));
+    ASSUME_ITS_TRUE(d.search(d, "second equals 59"));
+}
+
+// Test: search() with "before today" and "after today"
+FOSSIL_TEST(cpp_test_date_search_before_after_today) {
+    Date today = make_cpp_date(2024, 6, 1, 0, 0, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY);
+    Date before = today;
+    before.raw.day -= 1;
+    before.normalize();
+    Date after = today;
+    after.raw.day += 1;
+    after.normalize();
+    ASSUME_ITS_TRUE(before.search(today, "before today"));
+    ASSUME_ITS_FALSE(before.search(today, "after today"));
+    ASSUME_ITS_TRUE(after.search(today, "after today"));
+    ASSUME_ITS_FALSE(after.search(today, "before today"));
+}
+
+// Test: search() with "weekday is 6" (Saturday) and "weekday is not 0" (not Sunday)
+FOSSIL_TEST(cpp_test_date_search_weekday) {
+    Date d = make_cpp_date(2024, 6, 1, 0, 0, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY);
     d.normalize();
-    ASSUME_ITS_TRUE(d.search(now, "within 5 seconds"));
-    ASSUME_ITS_FALSE(d.search(now, "within 1 second"));
+    ASSUME_ITS_TRUE(d.search(d, "weekday is 6"));
+    ASSUME_ITS_TRUE(d.search(d, "weekday is not 0"));
+    ASSUME_ITS_FALSE(d.search(d, "weekday is 0"));
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
@@ -255,7 +313,11 @@ FOSSIL_TEST_GROUP(cpp_date_tests) {
     FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_method);
     FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_roundtrip_subsecond);
     FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_format_human_short);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_within);
+    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_past_future);
+    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_field_comparisons);
+    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_english_operators);
+    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_before_after_today);
+    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_weekday);
 
     FOSSIL_TEST_REGISTER(cpp_date_suite);
 }

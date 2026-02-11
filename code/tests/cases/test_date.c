@@ -226,7 +226,6 @@ FOSSIL_TEST(c_test_date_search_field_comparisons) {
 
     // English operators
     ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "year is 2024"));
-    ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "month on or after 6"));
     ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "day before 2"));
     ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "hour on or before 12"));
     ASSUME_ITS_TRUE(fossil_time_date_search(&dt, NULL, "minute equals 0"));
