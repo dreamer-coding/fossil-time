@@ -529,6 +529,31 @@ static int fossil_pattern_match(const char *str, const char *pattern) {
     return *str == '\0';
 }
 
+static int fossil_parse_int(const char *s, int *out) {
+    if (!s || !*s)
+        return 0;
+
+    int neg = 0;
+    if (*s == '-') {
+        neg = 1;
+        s++;
+    }
+
+    if (!isdigit((unsigned char)*s))
+        return 0;
+
+    int value = 0;
+    while (*s) {
+        if (!isdigit((unsigned char)*s))
+            return 0;
+        value = value * 10 + (*s - '0');
+        s++;
+    }
+
+    *out = neg ? -value : value;
+    return 1;
+}
+
 static int fossil_extract_operator(
     const char *query,
     char *field,
