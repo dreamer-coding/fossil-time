@@ -286,118 +286,69 @@ void fossil_time_date_from_unix_seconds(
 
 // format logic
 
-int64_t fossil_time_date_to_epoch(const fossil_time_date_t *dt) {
-    struct tm t = {0};
-    t.tm_year = dt->year - 1900;
-    t.tm_mon  = dt->month - 1;
-    t.tm_mday = dt->day;
-    t.tm_hour = dt->hour;
-    t.tm_min  = dt->minute;
-    t.tm_sec  = dt->second;
-    return (int64_t)fossil_time_internal_timegm(&t);
-}
-
 int fossil_time_date_format(
     const fossil_time_date_t *dt,
     char *buffer,
     size_t buffer_size,
     const char *format_id
 ) {
-    if (!dt || !buffer || buffer_size == 0)
-        return 0;
+    if (!dt || !buffer || buffer_size == 0) return 0;
 
-    int n = 0;
+    size_t n = 0;
 
-    /* -------- Date part -------- */
+    /* Date part */
     if (dt->precision_mask & FOSSIL_TIME_PRECISION_YEAR)
-        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%04d", dt->year);
+        n += snprintf(buffer + n, buffer_size - n, "%04d", dt->year);
     if (dt->precision_mask & FOSSIL_TIME_PRECISION_MONTH)
-        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "-%02d", dt->month);
+        n += snprintf(buffer + n, buffer_size - n, "-%02d", dt->month);
     if (dt->precision_mask & FOSSIL_TIME_PRECISION_DAY)
-        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "-%02d", dt->day);
+        n += snprintf(buffer + n, buffer_size - n, "-%02d", dt->day);
 
-    /* -------- Time part -------- */
+    /* Time part */
     if (dt->precision_mask & (FOSSIL_TIME_PRECISION_HOUR |
                               FOSSIL_TIME_PRECISION_MINUTE |
                               FOSSIL_TIME_PRECISION_SECOND)) {
-        int h = dt->precision_mask & FOSSIL_TIME_PRECISION_HOUR ? dt->hour : 0;
-        int m = dt->precision_mask & FOSSIL_TIME_PRECISION_MINUTE ? dt->minute : 0;
-        int s = dt->precision_mask & FOSSIL_TIME_PRECISION_SECOND ? dt->second : 0;
+        int h = (dt->precision_mask & FOSSIL_TIME_PRECISION_HOUR) ? dt->hour : 0;
+        int m = (dt->precision_mask & FOSSIL_TIME_PRECISION_MINUTE) ? dt->minute : 0;
+        int s = (dt->precision_mask & FOSSIL_TIME_PRECISION_SECOND) ? dt->second : 0;
+        n += snprintf(buffer + n, buffer_size - n, "T%02d:%02d:%02d", h, m, s);
 
-        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "T%02d:%02d:%02d", h, m, s);
-
-        /* -------- Sub-second fraction -------- */
-        int subsec_present = 0;
+        /* Sub-seconds */
         char subsec[32];
         int pos = 0;
-
-        #define APPEND_SUBSEC(field) \
-            if (dt->precision_mask & FOSSIL_TIME_PRECISION_##field) { \
-                pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->field); \
-                subsec_present = 1; \
-            }
-
-        APPEND_SUBSEC(MILLI);
-        APPEND_SUBSEC(MICRO);
-        APPEND_SUBSEC(NANO);
-        APPEND_SUBSEC(PICO);
-        APPEND_SUBSEC(FEMTO);
-        APPEND_SUBSEC(ATTO);
-        APPEND_SUBSEC(ZEPTO);
-        APPEND_SUBSEC(YOCTO);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_MILLI)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->millisecond);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_MICRO)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->microsecond);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_NANO)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->nanosecond);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_PICO)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->picosecond);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_FEMTO)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->femtosecond);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_ATTO)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->attosecond);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_ZEPTO)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->zeptosecond);
+        if (dt->precision_mask & FOSSIL_TIME_PRECISION_YOCTO)
+            pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->yoctosecond);
 
         /* Trim trailing zeros */
         while (pos > 0 && subsec[pos - 1] == '0') pos--;
-        if (subsec_present && pos > 0)
-            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, ".%.*s", pos, subsec);
+        if (pos > 0) n += snprintf(buffer + n, buffer_size - n, ".%.*s", pos, subsec);
 
-        n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "Z");
+        /* UTC marker */
+        n += snprintf(buffer + n, buffer_size - n, "Z");
     }
 
-    /* -------- Log format -------- */
-    if (!strcmp(format_id, "log")) {
-        n = 0;
-        if (dt->precision_mask & FOSSIL_TIME_PRECISION_YEAR)
-            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%04d", dt->year);
-        if (dt->precision_mask & FOSSIL_TIME_PRECISION_MONTH)
-            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%02d", dt->month);
-        if (dt->precision_mask & FOSSIL_TIME_PRECISION_DAY)
-            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "%02d", dt->day);
-
-        if (dt->precision_mask & (FOSSIL_TIME_PRECISION_HOUR |
-                                  FOSSIL_TIME_PRECISION_MINUTE |
-                                  FOSSIL_TIME_PRECISION_SECOND)) {
-            int h = dt->precision_mask & FOSSIL_TIME_PRECISION_HOUR ? dt->hour : 0;
-            int m = dt->precision_mask & FOSSIL_TIME_PRECISION_MINUTE ? dt->minute : 0;
-            int s = dt->precision_mask & FOSSIL_TIME_PRECISION_SECOND ? dt->second : 0;
-            n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, "-%02d%02d%02d", h, m, s);
-
-            /* optional sub-second: append only non-zero */
-            int subsec_present = 0;
-            char subsec[32];
-            int pos = 0;
-            #define APPEND_SUBSEC_LOG(field) \
-                if (dt->precision_mask & FOSSIL_TIME_PRECISION_##field) { \
-                    pos += snprintf(subsec + pos, sizeof(subsec) - pos, "%03d", dt->field); \
-                    subsec_present = 1; \
-                }
-
-            APPEND_SUBSEC_LOG(MILLI);
-            APPEND_SUBSEC_LOG(MICRO);
-            APPEND_SUBSEC_LOG(NANO);
-            APPEND_SUBSEC_LOG(PICO);
-            APPEND_SUBSEC_LOG(FEMTO);
-            APPEND_SUBSEC_LOG(ATTO);
-            APPEND_SUBSEC_LOG(ZEPTO);
-            APPEND_SUBSEC_LOG(YOCTO);
-
-            while (pos > 0 && subsec[pos - 1] == '0') pos--;
-            if (subsec_present && pos > 0)
-                n += snprintf(buffer + n, buffer_size > n ? buffer_size - n : 0, ".%.*s", pos, subsec);
-        }
+    /* Log format fallback */
+    if (!strcmp(format_id, "log") && n == 0) {
+        n = snprintf(buffer, buffer_size, "%04d%02d%02d-%02d%02d%02d",
+                     dt->year, dt->month, dt->day,
+                     dt->hour, dt->minute, dt->second);
     }
 
-    return n;
+    return (int)n;
 }
 
 int fossil_time_date_format_smart(
