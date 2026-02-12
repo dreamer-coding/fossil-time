@@ -1,8 +1,6 @@
 # **Fossil Time by Fossil Logic**
 
-Fossil Time is a modern, portable C library for handling time and date operations with precision, clarity, and human-friendly features. It provides a complete suite of utilities for working with datetimes, durations, monotonic timers, calendar logic, sleep routines, and human-aware scheduling.
-
-The library is designed around deterministic behavior, explicit types, and string-based identifiers for formats, units, and semantic concepts, making it safe, predictable, and suitable for embedded systems, servers, and CLIs. Its API is intuitive and modular, allowing developers to write code that is readable and maintainable while supporting advanced time operations.
+Fossil Time is a modern, portable C library for precise and human-friendly time and date operations. It offers utilities for datetimes, durations, monotonic timers, calendar logic, sleep routines, and scheduling, all built on deterministic behavior and explicit types. Using string-based identifiers for formats and units, Fossil Time ensures safety and predictability, making it ideal for embedded systems, servers, and CLIs. Its intuitive, modular API enables readable, maintainable code while supporting advanced time operations.
 
 ## Key Features
 
