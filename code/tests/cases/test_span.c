@@ -23,8 +23,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * *
 
 // Define the test suite and add test cases
-FOSSIL_SUITE(c_span
-    _suite);
+FOSSIL_SUITE(c_span_suite);
 
 // Setup function for the test suite
 FOSSIL_SETUP(c_span_suite) {
