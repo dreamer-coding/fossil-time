@@ -25,7 +25,7 @@
 #ifndef FOSSIL_TIME_SEASON_H
 #define FOSSIL_TIME_SEASON_H
 
-#include "fossil_time_date.h"
+#include "date.h"
 
 #ifdef __cplusplus
 extern "C" {
