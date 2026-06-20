@@ -150,12 +150,12 @@ FOSSIL_TEST(c_test_holiday_date_invalid) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(c_holiday_tests) {
-    FOSSIL_TEST_ADD(c_holiday_suite, c_test_holiday_register_get);
-    FOSSIL_TEST_ADD(c_holiday_suite, c_test_holiday_date_fixed);
-    FOSSIL_TEST_ADD(c_holiday_suite, c_test_holiday_date_weekday);
-    FOSSIL_TEST_ADD(c_holiday_suite, c_test_holiday_is);
-    FOSSIL_TEST_ADD(c_holiday_suite, c_test_holiday_list);
-    FOSSIL_TEST_ADD(c_holiday_suite, c_test_holiday_date_invalid);
+    FOSSIL_ADD_TEST(c_holiday_suite, c_test_holiday_register_get);
+    FOSSIL_ADD_TEST(c_holiday_suite, c_test_holiday_date_fixed);
+    FOSSIL_ADD_TEST(c_holiday_suite, c_test_holiday_date_weekday);
+    FOSSIL_ADD_TEST(c_holiday_suite, c_test_holiday_is);
+    FOSSIL_ADD_TEST(c_holiday_suite, c_test_holiday_list);
+    FOSSIL_ADD_TEST(c_holiday_suite, c_test_holiday_date_invalid);
 
-    FOSSIL_TEST_REGISTER(c_holiday_suite);
+    FOSSIL_ADD_SUITE(c_holiday_suite);
 }

@@ -173,13 +173,13 @@ FOSSIL_TEST(c_test_sleep_zero_and_null) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(c_sleep_tests) {
-    FOSSIL_TEST_ADD(c_sleep_suite, c_test_sleep_units);
-    FOSSIL_TEST_ADD(c_sleep_suite, c_test_sleep_seconds);
-    FOSSIL_TEST_ADD(c_sleep_suite, c_test_sleep_milliseconds);
-    FOSSIL_TEST_ADD(c_sleep_suite, c_test_sleep_microseconds);
-    FOSSIL_TEST_ADD(c_sleep_suite, c_test_sleep_nanoseconds);
-    FOSSIL_TEST_ADD(c_sleep_suite, c_test_sleep_ai_hints);
-    FOSSIL_TEST_ADD(c_sleep_suite, c_test_sleep_zero_and_null);
+    FOSSIL_ADD_TEST(c_sleep_suite, c_test_sleep_units);
+    FOSSIL_ADD_TEST(c_sleep_suite, c_test_sleep_seconds);
+    FOSSIL_ADD_TEST(c_sleep_suite, c_test_sleep_milliseconds);
+    FOSSIL_ADD_TEST(c_sleep_suite, c_test_sleep_microseconds);
+    FOSSIL_ADD_TEST(c_sleep_suite, c_test_sleep_nanoseconds);
+    FOSSIL_ADD_TEST(c_sleep_suite, c_test_sleep_ai_hints);
+    FOSSIL_ADD_TEST(c_sleep_suite, c_test_sleep_zero_and_null);
 
-    FOSSIL_TEST_REGISTER(c_sleep_suite);
+    FOSSIL_ADD_SUITE(c_sleep_suite);
 }

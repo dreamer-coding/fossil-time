@@ -297,20 +297,20 @@ FOSSIL_TEST(c_test_date_search_weekday_weekend) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(c_date_tests) {
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_now);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_validate);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_normalize);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_compare);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_diff_seconds);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_to_from_unix_seconds);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_to_unix_nanoseconds);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_format);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_format_smart_relative);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_field_comparisons);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_relative_keywords);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_invalid_and_edge_cases);
-    FOSSIL_TEST_ADD(c_date_suite, c_test_date_search_weekday_weekend);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_now);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_validate);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_normalize);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_compare);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_diff_seconds);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_to_from_unix_seconds);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_to_unix_nanoseconds);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_format);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_format_smart_relative);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_search);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_search_field_comparisons);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_search_relative_keywords);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_search_invalid_and_edge_cases);
+    FOSSIL_ADD_TEST(c_date_suite, c_test_date_search_weekday_weekend);
 
-    FOSSIL_TEST_REGISTER(c_date_suite);
+    FOSSIL_ADD_SUITE(c_date_suite);
 }

@@ -302,24 +302,24 @@ FOSSIL_TEST(cpp_test_date_search_weekday) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(cpp_date_tests) {
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_default_ctor);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_now_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_validate_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_normalize_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_compare_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_diff_seconds_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_to_from_unix_seconds_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_to_unix_nanoseconds_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_format_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_format_smart_relative_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_method);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_roundtrip_subsecond);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_format_human_short);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_past_future);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_field_comparisons);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_english_operators);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_before_after_today);
-    FOSSIL_TEST_ADD(cpp_date_suite, cpp_test_date_search_weekday);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_default_ctor);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_now_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_validate_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_normalize_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_compare_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_diff_seconds_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_to_from_unix_seconds_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_to_unix_nanoseconds_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_format_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_format_smart_relative_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_search_method);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_roundtrip_subsecond);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_format_human_short);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_search_past_future);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_search_field_comparisons);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_search_english_operators);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_search_before_after_today);
+    FOSSIL_ADD_TEST(cpp_date_suite, cpp_test_date_search_weekday);
 
-    FOSSIL_TEST_REGISTER(cpp_date_suite);
+    FOSSIL_ADD_SUITE(cpp_date_suite);
 }

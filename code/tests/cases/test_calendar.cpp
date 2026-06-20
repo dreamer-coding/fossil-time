@@ -176,12 +176,12 @@ FOSSIL_TEST(cpp_test_calendar_holidays_us) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(cpp_calendar_tests) {
-    FOSSIL_TEST_ADD(cpp_calendar_suite, cpp_test_calendar_is_leap_year);
-    FOSSIL_TEST_ADD(cpp_calendar_suite, cpp_test_calendar_days_in_month);
-    FOSSIL_TEST_ADD(cpp_calendar_suite, cpp_test_calendar_compute_derived);
-    FOSSIL_TEST_ADD(cpp_calendar_suite, cpp_test_calendar_is_queries);
-    FOSSIL_TEST_ADD(cpp_calendar_suite, cpp_test_calendar_get_classifications);
-    FOSSIL_TEST_ADD(cpp_calendar_suite, cpp_test_calendar_holidays_us);
+    FOSSIL_ADD_TEST(cpp_calendar_suite, cpp_test_calendar_is_leap_year);
+    FOSSIL_ADD_TEST(cpp_calendar_suite, cpp_test_calendar_days_in_month);
+    FOSSIL_ADD_TEST(cpp_calendar_suite, cpp_test_calendar_compute_derived);
+    FOSSIL_ADD_TEST(cpp_calendar_suite, cpp_test_calendar_is_queries);
+    FOSSIL_ADD_TEST(cpp_calendar_suite, cpp_test_calendar_get_classifications);
+    FOSSIL_ADD_TEST(cpp_calendar_suite, cpp_test_calendar_holidays_us);
 
-    FOSSIL_TEST_REGISTER(cpp_calendar_suite);
+    FOSSIL_ADD_SUITE(cpp_calendar_suite);
 }

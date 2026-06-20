@@ -226,16 +226,16 @@ FOSSIL_TEST(cpp_test_season_of_astronomical_boundaries) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(cpp_season_tests) {
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_of_meteorological_northern);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_of_meteorological_southern);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_of_astronomical_northern);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_of_null_date);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_of_no_month_precision);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_name);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_is_match);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_is_southern_hemisphere);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_is_null_date);
-    FOSSIL_TEST_ADD(cpp_season_suite, cpp_test_season_of_astronomical_boundaries);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_of_meteorological_northern);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_of_meteorological_southern);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_of_astronomical_northern);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_of_null_date);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_of_no_month_precision);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_name);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_is_match);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_is_southern_hemisphere);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_is_null_date);
+    FOSSIL_ADD_TEST(cpp_season_suite, cpp_test_season_of_astronomical_boundaries);
 
-    FOSSIL_TEST_REGISTER(cpp_season_suite);
+    FOSSIL_ADD_SUITE(cpp_season_suite);
 }

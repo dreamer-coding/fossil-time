@@ -109,12 +109,12 @@ FOSSIL_TEST(c_test_timer_hint_ns) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(c_timer_tests) {
-    FOSSIL_TEST_ADD(c_timer_suite, c_test_timer_start_and_elapsed_ns);
-    FOSSIL_TEST_ADD(c_timer_suite, c_test_timer_elapsed_us_and_ms);
-    FOSSIL_TEST_ADD(c_timer_suite, c_test_timer_elapsed_sec);
-    FOSSIL_TEST_ADD(c_timer_suite, c_test_timer_lap_ns);
-    FOSSIL_TEST_ADD(c_timer_suite, c_test_timer_null_safety);
-    FOSSIL_TEST_ADD(c_timer_suite, c_test_timer_hint_ns);
+    FOSSIL_ADD_TEST(c_timer_suite, c_test_timer_start_and_elapsed_ns);
+    FOSSIL_ADD_TEST(c_timer_suite, c_test_timer_elapsed_us_and_ms);
+    FOSSIL_ADD_TEST(c_timer_suite, c_test_timer_elapsed_sec);
+    FOSSIL_ADD_TEST(c_timer_suite, c_test_timer_lap_ns);
+    FOSSIL_ADD_TEST(c_timer_suite, c_test_timer_null_safety);
+    FOSSIL_ADD_TEST(c_timer_suite, c_test_timer_hint_ns);
 
-    FOSSIL_TEST_REGISTER(c_timer_suite);
+    FOSSIL_ADD_SUITE(c_timer_suite);
 }
