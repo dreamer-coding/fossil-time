@@ -11,7 +11,7 @@
  * Copyright (C) 2024 Fossil Logic. All rights reserved.
  * -----------------------------------------------------------------------------
  */
-#include <fossil/pizza/framework.h>
+#include <fossil/maip/framework.h>
 
 #include "fossil/time/framework.h"
 
@@ -248,17 +248,17 @@ FOSSIL_TEST(c_test_span_format_nulls) {
 // * Fossil Logic Test Pool
 // * * * * * * * * * * * * * * * * * * * * * * * *
 FOSSIL_TEST_GROUP(c_span_tests) {
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_clear);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_validate);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_normalize);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_from_unit);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_from_ai);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_add_sub);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_to_seconds);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_to_nanoseconds);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_format);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_format_buffer_small);
-    FOSSIL_TEST_ADD(c_span_suite, c_test_span_format_nulls);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_clear);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_validate);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_normalize);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_from_unit);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_from_ai);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_add_sub);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_to_seconds);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_to_nanoseconds);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_format);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_format_buffer_small);
+    FOSSIL_ADD_TEST(c_span_suite, c_test_span_format_nulls);
 
-    FOSSIL_TEST_REGISTER(c_span_suite);
+    FOSSIL_ADD_SUITE(c_span_suite);
 }

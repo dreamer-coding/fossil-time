@@ -40,7 +40,7 @@ Fossil Time is a modern, portable C library built for lossless, precision-aware 
 
 To get started, ensure you have the following installed:
 
-- **Meson Build System**: If you don’t have Meson `1.8.0` or newer installed, follow the installation instructions on the official [Meson website](https://mesonbuild.com/Getting-meson.html).
+- **Meson Build System**: If you don’t have Meson `1.10.0` or newer installed, follow the installation instructions on the official [Meson website](https://mesonbuild.com/Getting-meson.html).
 
 ### Adding Dependency
 
@@ -55,7 +55,7 @@ Add the `fossil-time.wrap` file in your `subprojects` directory and include the 
 ```ini
 [wrap-git]
 url = https://github.com/fossillogic/fossil-time.git
-revision = v0.1.1
+revision = v1.0.0
 
 [provide]
 dependency_names = fossil-time
