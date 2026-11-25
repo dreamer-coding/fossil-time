@@ -24,12 +24,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -66,7 +66,7 @@ jobs:
           meson test
           -C builddir_msvc_${{ matrix.msvc_version }}_${{ matrix.libtype }}
           -v
-          --test-args="show --mode tree --verbose ci --result fail theme dark"
+          --test-args="show --mode json --verbose ci --result fail"
 
 # =========================================================
 # macOS
@@ -82,12 +82,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -121,7 +121,7 @@ jobs:
           meson test
           -C builddir_${{ matrix.libtype }}
           -v
-          --test-args="show --mode tree --verbose ci --result fail theme light"
+          --test-args="show --mode json --verbose ci --result fail"
 
 # =========================================================
 # Linux (Docker matrix)
@@ -138,7 +138,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -146,7 +146,7 @@ jobs:
         uses: docker/setup-buildx-action@v4
 
       - name: Cache Docker layers
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
           key: ${{ runner.os }}-buildx-${{ matrix.distro }}
@@ -175,5 +175,5 @@ jobs:
                 --default-library=${{ matrix.libtype }} && \
               meson compile -C builddir_${{ matrix.libtype }} && \
               meson test -C builddir_${{ matrix.libtype }} -v \
-                --test-args='show --mode tree --verbose ci --result fail theme mint'
+                --test-args='show --mode json --verbose ci --result fail'
             "
