@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <ctype.h>
 #include <time.h>
+#include <stdarg.h>
 
 /* ======================================================
  * Helpers
@@ -62,50 +63,23 @@ static int64_t fossil_time_days_from_civil(int64_t y, unsigned m, unsigned d) {
     return era * 146097 + (int64_t)doe - 719468;
 }
 
-static int64_t fossil_time_tm_to_epoch_utc(const struct tm *tm) {
-    int64_t days = fossil_time_days_from_civil(
-        tm->tm_year + 1900,
-        (unsigned)(tm->tm_mon + 1),
-        (unsigned)tm->tm_mday
-    );
-
-    return days * 86400
-         + tm->tm_hour * 3600
-         + tm->tm_min * 60
-         + tm->tm_sec;
+static int64_t fossil_time_floor_div(int64_t value, int64_t divisor) {
+    int64_t quotient = value / divisor;
+    if (value % divisor < 0)
+        quotient--;
+    return quotient;
 }
 
-/* ======================================================
- * Internal: portable UTC timegm replacement
- * ====================================================== */
-
-static time_t fossil_time_internal_timegm(struct tm *tm) {
-
-#if defined(_WIN32)
-
-    /* Windows provides _mkgmtime */
-    return _mkgmtime(tm);
-
-#else
-
-    /* POSIX fallback: temporarily force UTC */
-    char *old_tz = getenv("TZ");
-    time_t result;
-
-    setenv("TZ", "UTC", 1);
-    tzset();
-
-    result = mktime(tm);
-
-    if (old_tz)
-        setenv("TZ", old_tz, 1);
-    else
-        unsetenv("TZ");
-
-    tzset();
-    return result;
-
-#endif
+static int64_t fossil_time_year_from_days(int64_t days) {
+    int64_t z = days + 719468;
+    int64_t era = (z >= 0 ? z : z - 146096) / 146097;
+    unsigned doe = (unsigned)(z - era * 146097);
+    unsigned yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    int64_t year = (int64_t)yoe + era * 400;
+    unsigned doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    unsigned mp = (5 * doy + 2) / 153;
+    unsigned month = mp + (mp < 10 ? 3 : -9);
+    return year + (month <= 2);
 }
 
 /* ======================================================
@@ -178,21 +152,23 @@ int fossil_time_date_validate(const fossil_time_date_t *dt) {
 }
 
 void fossil_time_date_normalize(fossil_time_date_t *dt) {
-    /* Conservative normalize: recompute derived only */
-    struct tm tm = {0};
+    /* Recompute derived fields using UTC civil arithmetic, without changing TZ. */
+    int64_t year = dt->year;
+    int64_t month_index = (int64_t)dt->month - 1;
+    year += fossil_time_floor_div(month_index, 12);
+    unsigned month = (unsigned)(month_index - fossil_time_floor_div(month_index, 12) * 12 + 1);
 
-    tm.tm_year = dt->year - 1900;
-    tm.tm_mon  = dt->month - 1;
-    tm.tm_mday = dt->day;
-    tm.tm_hour = dt->hour;
-    tm.tm_min  = dt->minute;
-    tm.tm_sec  = dt->second;
+    int64_t seconds = (int64_t)dt->hour * 3600 +
+                      (int64_t)dt->minute * 60 + dt->second;
+    int64_t days = fossil_time_days_from_civil(year, month, 1) +
+                   (int64_t)dt->day - 1 + fossil_time_floor_div(seconds, 86400);
+    int64_t normalized_year = fossil_time_year_from_days(days);
+    int64_t weekday = (days + 4) % 7;
+    if (weekday < 0)
+        weekday += 7;
 
-    time_t t = fossil_time_internal_timegm(&tm);
-    gmtime_r(&t, &tm);
-
-    dt->weekday = tm.tm_wday;
-    dt->yearday = tm.tm_yday + 1;
+    dt->weekday = (int)weekday;
+    dt->yearday = (int)(days - fossil_time_days_from_civil(normalized_year, 1, 1) + 1);
 }
 
 int fossil_time_date_compare(
@@ -235,7 +211,15 @@ int64_t fossil_time_date_to_unix_seconds(
     tm.tm_min  = dt->minute;
     tm.tm_sec  = dt->second;
 
-    int64_t seconds = fossil_time_tm_to_epoch_utc(&tm);
+    int64_t days = fossil_time_days_from_civil(
+        tm.tm_year + 1900,
+        (unsigned)(tm.tm_mon + 1),
+        (unsigned)tm.tm_mday
+    );
+    int64_t seconds = days * 86400
+                    + tm.tm_hour * 3600
+                    + tm.tm_min * 60
+                    + tm.tm_sec;
     return seconds - (dt->tz_offset_min * 60);
 }
 
