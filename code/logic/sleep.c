@@ -23,6 +23,7 @@
  * -----------------------------------------------------------------------------
  */
 #include "fossil/time/sleep.h"
+#include <errno.h>
 #include <string.h>
 
 #if defined(_WIN32)
@@ -37,18 +38,38 @@
  * ====================================================== */
 
 static void sleep_nanoseconds_internal(uint64_t ns) {
+    const uint64_t max_chunk_ns = 86400000000000ULL; /* one day */
 #if defined(_WIN32)
-    /* Windows sleep granularity is milliseconds */
-    DWORD ms = (DWORD)(ns / 1000000ULL);
-    if (ms == 0 && ns > 0)
-        ms = 1;
-    Sleep(ms);
+    while (ns > 0) {
+        uint64_t chunk = ns > max_chunk_ns ? max_chunk_ns : ns;
+        uint64_t ms = chunk / 1000000ULL;
+        if (chunk % 1000000ULL)
+            ++ms;
+        Sleep((DWORD)ms);
+        ns -= chunk;
+    }
 #else
-    struct timespec ts;
-    ts.tv_sec  = (time_t)(ns / 1000000000ULL);
-    ts.tv_nsec = (long)(ns % 1000000000ULL);
-    nanosleep(&ts, NULL);
+    while (ns > 0) {
+        uint64_t chunk = ns > max_chunk_ns ? max_chunk_ns : ns;
+        struct timespec ts;
+        ts.tv_sec  = (time_t)(chunk / 1000000000ULL);
+        ts.tv_nsec = (long)(chunk % 1000000000ULL);
+
+        for (;;) {
+            struct timespec remaining;
+            if (nanosleep(&ts, &remaining) == 0 || errno != EINTR)
+                break;
+            ts = remaining;
+        }
+        ns -= chunk;
+    }
 #endif
+}
+
+static uint64_t saturating_multiply(uint64_t value, uint64_t multiplier) {
+    if (value > UINT64_MAX / multiplier)
+        return UINT64_MAX;
+    return value * multiplier;
 }
 
 static uint64_t unit_to_nanoseconds(
@@ -59,11 +80,11 @@ static uint64_t unit_to_nanoseconds(
         return 0;
 
     if (!strcmp(unit_id, "sec"))
-        return value * 1000000000ULL;
+        return saturating_multiply(value, 1000000000ULL);
     if (!strcmp(unit_id, "ms"))
-        return value * 1000000ULL;
+        return saturating_multiply(value, 1000000ULL);
     if (!strcmp(unit_id, "us"))
-        return value * 1000ULL;
+        return saturating_multiply(value, 1000ULL);
     if (!strcmp(unit_id, "ns"))
         return value;
 
