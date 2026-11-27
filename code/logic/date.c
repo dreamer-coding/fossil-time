@@ -278,6 +278,12 @@ int fossil_time_date_format(
 ) {
     if (!dt || !buffer || buffer_size == 0) return 0;
 
+    if (format_id && strcmp(format_id, "log") == 0) {
+        return snprintf(buffer, buffer_size, "%04d%02d%02d-%02d%02d%02d",
+                        dt->year, dt->month, dt->day,
+                        dt->hour, dt->minute, dt->second);
+    }
+
     size_t n = 0;
 
     /* Date part */
@@ -323,13 +329,6 @@ int fossil_time_date_format(
 
         /* UTC marker */
         n += snprintf(buffer + n, buffer_size - n, "Z");
-    }
-
-    /* Log format fallback */
-    if (!strcmp(format_id, "log") && n == 0) {
-        n = snprintf(buffer, buffer_size, "%04d%02d%02d-%02d%02d%02d",
-                     dt->year, dt->month, dt->day,
-                     dt->hour, dt->minute, dt->second);
     }
 
     return (int)n;

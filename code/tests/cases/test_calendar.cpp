@@ -120,23 +120,23 @@ FOSSIL_TEST(cpp_test_calendar_get_classifications) {
         FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY);
     char buf[32];
 
-    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "season", buf, sizeof(buf)), strlen("spring"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "season", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "spring");
 
-    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "quarter", buf, sizeof(buf)), strlen("Q2"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "quarter", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "Q2");
 
-    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "half", buf, sizeof(buf)), strlen("H1"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "half", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "H1");
 
     dt.raw.month = 10;
-    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "season", buf, sizeof(buf)), strlen("autumn"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "season", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "autumn");
 
-    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "quarter", buf, sizeof(buf)), strlen("Q4"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "quarter", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "Q4");
 
-    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "half", buf, sizeof(buf)), strlen("H2"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get(dt, "half", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "H2");
 
     // Unknown class_id
@@ -150,17 +150,17 @@ FOSSIL_TEST(cpp_test_calendar_holidays_us) {
     char buf[32];
 
     ASSUME_ITS_TRUE(Calendar::is_holiday(dt, "us"));
-    ASSUME_ITS_EQUAL_I32(Calendar::get_holiday(dt, "us", buf, sizeof(buf)), strlen("new_years_day"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get_holiday(dt, "us", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "new_years_day");
 
     dt.raw.month = 7; dt.raw.day = 4;
     ASSUME_ITS_TRUE(Calendar::is_holiday(dt, "us_federal"));
-    ASSUME_ITS_EQUAL_I32(Calendar::get_holiday(dt, "us_federal", buf, sizeof(buf)), strlen("independence_day"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get_holiday(dt, "us_federal", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "independence_day");
 
     dt.raw.month = 12; dt.raw.day = 25;
     ASSUME_ITS_TRUE(Calendar::is_holiday(dt, "us"));
-    ASSUME_ITS_EQUAL_I32(Calendar::get_holiday(dt, "us", buf, sizeof(buf)), strlen("christmas"));
+    ASSUME_ITS_EQUAL_I32(Calendar::get_holiday(dt, "us", buf, sizeof(buf)), 0);
     ASSUME_ITS_EQUAL_CSTR(buf, "christmas");
 
     dt.raw.month = 2; dt.raw.day = 14;

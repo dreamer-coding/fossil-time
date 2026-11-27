@@ -67,16 +67,22 @@ static fossil_time_date_t make_date(
 FOSSIL_TEST(c_test_calendar_is_leap_year) {
     ASSUME_ITS_TRUE(fossil_time_calendar_is_leap_year(2020));
     ASSUME_ITS_TRUE(fossil_time_calendar_is_leap_year(2000));
+    ASSUME_ITS_TRUE(fossil_time_calendar_is_leap_year(2400));
     ASSUME_ITS_FALSE(fossil_time_calendar_is_leap_year(1900));
+    ASSUME_ITS_FALSE(fossil_time_calendar_is_leap_year(2100));
     ASSUME_ITS_FALSE(fossil_time_calendar_is_leap_year(2023));
+    ASSUME_ITS_FALSE(fossil_time_calendar_is_leap_year(0));
 }
 
 // Test: fossil_time_calendar_days_in_month
 FOSSIL_TEST(c_test_calendar_days_in_month) {
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2024, 2), 29); // Leap year
+    ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2000, 2), 29); // Century leap year
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2023, 2), 28);
+    ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(1900, 2), 28);
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2024, 4), 30);
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2024, 1), 31);
+    ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2024, 12), 31);
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2024, 0), 0); // Invalid month
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_days_in_month(2024, 13), 0); // Invalid month
 }
@@ -88,6 +94,12 @@ FOSSIL_TEST(c_test_calendar_compute_derived) {
     fossil_time_calendar_compute_derived(&dt);
     ASSUME_ITS_EQUAL_I32(dt.weekday, 2); // 2024-12-31 is Tuesday
     ASSUME_ITS_EQUAL_I32(dt.yearday, 366); // Leap year, last day
+
+    dt = make_date(2023, 1, 1, 0, 0, 0, 0, 0, 0,
+        FOSSIL_TIME_PRECISION_YEAR | FOSSIL_TIME_PRECISION_MONTH | FOSSIL_TIME_PRECISION_DAY);
+    fossil_time_calendar_compute_derived(&dt);
+    ASSUME_ITS_EQUAL_I32(dt.weekday, 0); // 2023-01-01 is Sunday
+    ASSUME_ITS_EQUAL_I32(dt.yearday, 1);
 
     dt.precision_mask = 0; // Not enough precision
     fossil_time_calendar_compute_derived(&dt);
@@ -105,10 +117,17 @@ FOSSIL_TEST(c_test_calendar_is_queries) {
     ASSUME_ITS_TRUE(fossil_time_calendar_is(&dt, "monday"));
     ASSUME_ITS_FALSE(fossil_time_calendar_is(&dt, "sunday"));
 
+    dt.weekday = 6; // Saturday
+    ASSUME_ITS_TRUE(fossil_time_calendar_is(&dt, "saturday"));
+    ASSUME_ITS_TRUE(fossil_time_calendar_is(&dt, "weekend"));
+    ASSUME_ITS_FALSE(fossil_time_calendar_is(&dt, "weekday"));
+
     dt.weekday = 0; // Sunday
     ASSUME_ITS_TRUE(fossil_time_calendar_is(&dt, "sunday"));
     ASSUME_ITS_TRUE(fossil_time_calendar_is(&dt, "weekend"));
     ASSUME_ITS_FALSE(fossil_time_calendar_is(&dt, "weekday"));
+
+    ASSUME_ITS_FALSE(fossil_time_calendar_is(&dt, "unknown"));
 }
 
 // Test: fossil_time_calendar_get (season, quarter, half)
@@ -136,8 +155,9 @@ FOSSIL_TEST(c_test_calendar_get_classifications) {
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get(&dt, "half", buf, sizeof(buf)), strlen("H2"));
     ASSUME_ITS_EQUAL_CSTR(buf, "H2");
 
-    // Unknown class_id
+    // Unknown class_id and undersized output buffer
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get(&dt, "unknown", buf, sizeof(buf)), -1);
+    ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get(&dt, "season", buf, 3), -1);
 }
 
 // Test: fossil_time_calendar_is_holiday and get_holiday (US baseline)
@@ -148,11 +168,13 @@ FOSSIL_TEST(c_test_calendar_holidays_us) {
 
     fossil_time_calendar_compute_derived(&dt);
     ASSUME_ITS_TRUE(fossil_time_calendar_is_holiday(&dt, "us"));
+    ASSUME_ITS_TRUE(fossil_time_calendar_is_holiday(&dt, "us_federal"));
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get_holiday(&dt, "us", buf, sizeof(buf)), strlen("new_years_day"));
     ASSUME_ITS_EQUAL_CSTR(buf, "new_years_day");
 
     dt.month = 7; dt.day = 4;
     fossil_time_calendar_compute_derived(&dt);
+    ASSUME_ITS_TRUE(fossil_time_calendar_is_holiday(&dt, "us"));
     ASSUME_ITS_TRUE(fossil_time_calendar_is_holiday(&dt, "us_federal"));
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get_holiday(&dt, "us_federal", buf, sizeof(buf)), strlen("independence_day"));
     ASSUME_ITS_EQUAL_CSTR(buf, "independence_day");
@@ -160,6 +182,7 @@ FOSSIL_TEST(c_test_calendar_holidays_us) {
     dt.month = 12; dt.day = 25;
     fossil_time_calendar_compute_derived(&dt);
     ASSUME_ITS_TRUE(fossil_time_calendar_is_holiday(&dt, "us"));
+    ASSUME_ITS_TRUE(fossil_time_calendar_is_holiday(&dt, "us_federal"));
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get_holiday(&dt, "us", buf, sizeof(buf)), strlen("christmas"));
     ASSUME_ITS_EQUAL_CSTR(buf, "christmas");
 
@@ -167,6 +190,9 @@ FOSSIL_TEST(c_test_calendar_holidays_us) {
     fossil_time_calendar_compute_derived(&dt);
     ASSUME_ITS_FALSE(fossil_time_calendar_is_holiday(&dt, "us"));
     ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get_holiday(&dt, "us", buf, sizeof(buf)), -1);
+
+    ASSUME_ITS_FALSE(fossil_time_calendar_is_holiday(&dt, "unknown_region"));
+    ASSUME_ITS_EQUAL_I32(fossil_time_calendar_get_holiday(&dt, "unknown_region", buf, sizeof(buf)), -1);
 }
 
 // * * * * * * * * * * * * * * * * * * * * * * * *
